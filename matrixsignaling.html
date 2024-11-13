@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Matrix Signaling Effect</title>
+<title>Matrix Rain with Signaling Effect</title>
 <style>
   body {
     margin: 0;
@@ -37,6 +37,8 @@
   let drops = Array.from({ length: columns }, () => ({
     yPos: 1,
     speed: Math.random() * 0.9 + 0.3,
+    signaling: false,
+    newDrop: true,
   }));
 
   /**
@@ -48,7 +50,7 @@
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     drops = drops.map((drop, index) => {
-      const { yPos, speed } = drop;
+      const { yPos, speed, signaling, newDrop } = drop;
       const text = matrixCharacters[Math.floor(Math.random() * matrixCharacters.length)];
       const xPos = index * fontSize;
       const isSignaling = Math.random() > 0.98;
@@ -57,15 +59,51 @@
       const gradient = ctx.createLinearGradient(xPos, yPos * fontSize - fontSize * 4, xPos, yPos * fontSize);
       gradient.addColorStop(0.2, '#39ff14');
       gradient.addColorStop(0.8, '#39ff14');
-      ctx.fillStyle = isSignaling ? '#FFFF33' : gradient;
-
       ctx.font = `${fontSize}px monospace`;
+
+      if (signaling) {
+        ctx.fillStyle = 'rgba(57, 255, 20, 1)';  // Normal rain color
+      } else if (isSignaling) {
+		
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';  // More opaque white fill
+        ctx.fillRect(xPos, yPos * fontSize - fontSize, fontSize, fontSize);
+        ctx.fillStyle = 'rgba(255, 255, 0, 1)';  // Start with white color
+        setTimeout(() => {
+          drop.signaling = true;
+        }, 1000);  // Fade to normal color after 1 second
+      } else {
+        ctx.fillStyle = gradient;
+      }
+
       ctx.fillText(text, xPos, yPos * fontSize);
+
+      // Draw and fill the typing box indicator at the start of the drop
+      if (newDrop) {
+        //ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';  // More opaque white fill
+        //ctx.fillRect(xPos, yPos * fontSize - fontSize, fontSize, fontSize);
+
+        // Add a glowing effect
+        ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
+        ctx.shadowBlur = 10;
+
+        // Draw a distinct colored binary digit (0 or 1) inside the typing box
+        const binary = Math.random() > 0.5 ? '0' : '1';
+        ctx.fillStyle = 'rgba(255, 255, 255, 1)';  // Solid yellow color for contrast
+        ctx.fillText(binary, xPos + fontSize / 2, yPos * fontSize);
+
+        // Remove shadow effect after drawing
+        ctx.shadowBlur = 0;
+
+        // Set a timeout to remove the indicator after a short period
+        setTimeout(() => {
+          drop.newDrop = false;
+        }, 150);  // Remove after 150ms for a more prominent effect
+      }
 
       // Reset drop to top with new speed if it exits screen, else move it down
       return yPos * fontSize > canvas.height && Math.random() > 0.975
-        ? { yPos: 0, speed: Math.random() * 1.5 + 0.5 }
-        : { yPos: yPos + speed, speed };
+        ? { yPos: 0, speed: Math.random() * 1.5 + 0.5, signaling: false, newDrop: true }
+        : { yPos: yPos + speed, speed, signaling: signaling, newDrop: newDrop };
     });
   };
 
@@ -76,7 +114,12 @@
   window.addEventListener('resize', () => {
     resizeCanvas();
     const newColumns = Math.floor(canvas.width / fontSize);
-    drops = Array.from({ length: newColumns }, () => ({ yPos: 1, speed: Math.random() * 0.9 + 0.3 }));
+    drops = Array.from({ length: newColumns }, () => ({
+      yPos: 1,
+      speed: Math.random() * 0.9 + 0.3,
+      signaling: false,
+      newDrop: true,
+    }));
   });
 </script>
 </body>
