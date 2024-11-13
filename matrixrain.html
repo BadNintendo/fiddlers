@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Matrix Rain with Signaling Effect</title>
+<style>
+  body {
+    margin: 0;
+    overflow: hidden;
+    background-color: black;
+  }
+  canvas {
+    display: block;
+  }
+</style>
+</head>
+<body>
+<canvas id="matrixCanvas"></canvas>
+
+<script>
+  const canvas = document.getElementById('matrixCanvas');
+  const ctx = canvas.getContext('2d');
+
+  // Set canvas dimensions to full screen
+  const resizeCanvas = () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  };
+  resizeCanvas();
+
+  const matrixCharacters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789@#$%^&*()*&^%';
+  const fontSize = 16;
+  const columns = Math.floor(canvas.width / fontSize);
+
+  // Initialize drops with random speeds and initial positions
+  let drops = Array.from({ length: columns }, () => ({
+    yPos: 1,
+    speed: Math.random() * 0.9 + 0.3,
+  }));
+
+  /**
+   * drawMatrixRain - Renders the matrix rain effect with random character display.
+   */
+  const drawMatrixRain = () => {
+    // Apply a semi-transparent overlay for trailing effect
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.02)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    drops = drops.map((drop, index) => {
+      const { yPos, speed } = drop;
+      const text = matrixCharacters[Math.floor(Math.random() * matrixCharacters.length)];
+      const xPos = index * fontSize;
+      const isSignaling = Math.random() > 0.98;
+
+      // Create a gradient for rain effect
+      const gradient = ctx.createLinearGradient(xPos, yPos * fontSize - fontSize * 4, xPos, yPos * fontSize);
+      gradient.addColorStop(0.2, '#39ff14');
+      gradient.addColorStop(0.8, '#39ff14');
+      ctx.fillStyle = isSignaling ? '#FFFF33' : gradient;
+
+      ctx.font = `${fontSize}px monospace`;
+      ctx.fillText(text, xPos, yPos * fontSize);
+
+      // Reset drop to top with new speed if it exits screen, else move it down
+      return yPos * fontSize > canvas.height && Math.random() > 0.975
+        ? { yPos: 0, speed: Math.random() * 1.5 + 0.5 }
+        : { yPos: yPos + speed, speed };
+    });
+  };
+
+  // Set interval for continuous rain effect
+  setInterval(drawMatrixRain, 50);
+
+  // Adjust canvas and drops on window resize
+  window.addEventListener('resize', () => {
+    resizeCanvas();
+    const newColumns = Math.floor(canvas.width / fontSize);
+    drops = Array.from({ length: newColumns }, () => ({ yPos: 1, speed: Math.random() * 0.9 + 0.3 }));
+  });
+</script>
+</body>
+</html>
